@@ -1,6 +1,7 @@
 set(_SOURCE
     main.cxx
     server.cxx
+    parse_dns.cxx
 )
 
 set(_CLIENT

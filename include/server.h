@@ -23,7 +23,6 @@ private:
     sockaddr_in RecvAddr;
     sockaddr_in SenderAddr;
     int SenderAddrSize = sizeof(SenderAddr);
-    int RecvAddrSize = sizeof(RecvAddr);
     SOCKET Socket;
 
     char RequestBfr[DEFAULT_BUFLEN] = {};

@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "server.h"
+#include "dns.h"
+#include <iostream>
 
 DNSSrv::DNSSrv(unsigned short ListeningPort)
 {
@@ -67,7 +69,25 @@ int DNSSrv::Runtime()
 {
     Listen();
 
-    
+    std::string DNSRequest = dns::ToBinary(RequestBfr, sizeof(RequestBfr));    
+
+    dns::DnsStruct ds = dns::DnsStruct();
+
+    ds.ReadData(DNSRequest);
+
+    std::cout << "DNS Request ID: "      << ds.data.header.ID                         << std::endl;
+    std::cout << "DNS Request QR: "      << static_cast<int>(ds.data.header.QR)       << std::endl;
+    std::cout << "DNS Request Opcode: "  << static_cast<int>(ds.data.header.Opcode)   << std::endl;
+    std::cout << "DNS Request AA: "      << static_cast<int>(ds.data.header.AA)       << std::endl;
+    std::cout << "DNS Request TC: "      << static_cast<int>(ds.data.header.TC)       << std::endl;
+    std::cout << "DNS Request RD: "      << static_cast<int>(ds.data.header.RD)       << std::endl;
+    std::cout << "DNS Request RA: "      << static_cast<int>(ds.data.header.RA)       << std::endl;
+    std::cout << "DNS Request Z: "       << static_cast<int>(ds.data.header.Z)        << std::endl;
+    std::cout << "DNS Request RCODE: "   << static_cast<int>(ds.data.header.RCODE)    << std::endl;
+    std::cout << "DNS Request QDCOUNT: " << ds.data.header.QDCOUNT                    << std::endl;
+    std::cout << "DNS Request ANCOUNT: " << ds.data.header.ANCOUNT                    << std::endl;
+    std::cout << "DNS Request NSCOUNT: " << ds.data.header.NSCOUNT                    << std::endl;
+    std::cout << "DNS Request ARCOUNT: " << ds.data.header.ARCOUNT                    << std::endl;
 
     return 0;
 }

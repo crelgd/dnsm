@@ -1,7 +1,10 @@
 #pragma once
 
+#include <string>
 #include <cstdint>
 #include <vector>
+#include <cstring>
+#include <iostream>
 
 #define BIT bool
 
@@ -45,8 +48,28 @@ typedef struct
 
 namespace dns
 {
+    std::string ToBinary(char* hex, size_t);
+
     class DnsStruct
     {
+    public:
+        void ReadData(std::string DNS);
 
-    }
+    public:
+        DNS_DATA data;
+
+    private:
+        template <typename T>
+        void WriteData(T* dest, T datad, size_t data_sizeof)
+        {
+            memcpy(dest, &datad, sizeof(T));
+            fp += data_sizeof;
+        }
+
+        void ReadDNSHeader(std::string DNS);
+
+    private:
+        int fp;
+    };
 }
+
