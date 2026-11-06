@@ -19,7 +19,7 @@ typedef struct
     BIT         RA;
     uint8_t     Z;
     uint8_t     RCODE;
-    uint16_t    QDCOUNT;
+    uint16_t    QDCOUNT; // количество секций запросов
     uint16_t    ANCOUNT;
     uint16_t    NSCOUNT;
     uint16_t    ARCOUNT;
@@ -27,14 +27,14 @@ typedef struct
 
 typedef struct 
 {
-    std::vector<char>   QNAME;
-    uint16_t            QTYPE;
-    uint16_t            QCLASS;
+    std::vector<std::string>    QNAME;
+    uint16_t                    QTYPE;
+    uint16_t                    QCLASS;
 } DNS_QUESTION;
 
 typedef struct 
 {
-    std::vector<char>   QNAME;
+    std::vector<std::string>   QNAME;
     uint16_t            QTYPE;
     uint16_t            RDLENGHT;
 } DNS_ANSWER;
@@ -42,7 +42,7 @@ typedef struct
 typedef struct
 {
     DNS_HEADER header;
-    DNS_QUESTION request;
+    std::vector<DNS_QUESTION> request;
     DNS_ANSWER answer;
 } DNS_DATA;
 
@@ -53,7 +53,7 @@ namespace dns
     class DnsStruct
     {
     public:
-        void ReadData(std::string DNS);
+        void ReadData(std::string question);
 
     public:
         DNS_DATA data;
@@ -66,7 +66,9 @@ namespace dns
             fp += data_sizeof;
         }
 
-        void ReadDNSHeader(std::string DNS);
+        void ReadDNSHeader(std::string question);
+        void ReadSectionQuestion(std::string question, int cRecord);
+        void ReadLine(uint8_t strSize, std::string question, int cRecord);
 
     private:
         int fp;

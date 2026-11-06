@@ -89,6 +89,15 @@ int DNSSrv::Runtime()
     std::cout << "DNS Request NSCOUNT: " << ds.data.header.NSCOUNT                    << std::endl;
     std::cout << "DNS Request ARCOUNT: " << ds.data.header.ARCOUNT                    << std::endl;
 
+
+    for (int j = 0; j < ds.data.header.QDCOUNT; j++)
+    {
+    for (int i = 0; i < ds.data.request[j].QNAME.size(); i++)
+    {
+        std::cout << ds.data.request[j].QNAME[i] << std::endl;
+    }
+    }
+
     return 0;
 }
 

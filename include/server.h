@@ -4,7 +4,7 @@
 #include <ws2tcpip.h>
 
 #define DEFAULT_BUFLEN 512
-#define PORT 50009
+#define PORT 53
 
 class DNSSrv
 {
