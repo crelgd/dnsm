@@ -124,5 +124,18 @@ namespace dns
         for (int i = 0; i < data.header.QDCOUNT; i++)
             ReadSectionQuestion(question, i);
     }
+
+    void AnswerGenerate(DNS_DATA data, char* request, size_t requestSizeOF, std::vector<DNSRECORD> conf)
+    {
+        size_t requestSIZE = requestSizeOF / sizeof(request[0]);
+
+        if (requestSIZE < 10) return;
+
+        std::vector<char> answer(requestSIZE);
+
+        memcpy(answer.data(), request, requestSIZE);
+
+        
+    }
 }
 

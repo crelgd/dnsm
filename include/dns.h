@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <cstring>
+#include "FileRecord.h"
 #include <iostream>
 
 #define BIT bool
@@ -73,5 +74,7 @@ namespace dns
     private:
         int fp;
     };
+
+    void AnswerGenerate(DNS_DATA data, char* request, size_t requestSizeOF, std::vector<DNSRECORD> conf);
 }
 
