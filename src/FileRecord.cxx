@@ -51,6 +51,8 @@ namespace fsdns {
             adr += filecontent[j];
         }
 
+        std::vector<char> s = TransformIP(adr);
+
         dnsrec.Address = TransformIP(adr);
 
         return 1;   
@@ -122,11 +124,17 @@ namespace fsdns {
             {
                 OutIP.push_back(atoi(NUM.c_str()));
                 NUM.clear();
+                continue;
             }
 
             NUM += IP[i];
         }
         
+        if (!NUM.empty())
+        {
+            OutIP.push_back(atoi(NUM.c_str()));
+        }
+
         if (OutIP.size() < 4)
         {
             return {};

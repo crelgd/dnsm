@@ -2,9 +2,12 @@
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include "FileRecord.h"
 
 #define DEFAULT_BUFLEN 512
 #define PORT 53
+
+#define CONFIG_FILE "config.ini"
 
 class DNSSrv
 {
@@ -26,4 +29,9 @@ private:
     SOCKET Socket;
 
     char RequestBfr[DEFAULT_BUFLEN] = {};
+
+    int listenVAL;
+
+    fsdns::DNSRecord file;
+    std::vector<DNSRECORD> crecord;
 };

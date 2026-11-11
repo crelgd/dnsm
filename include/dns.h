@@ -50,6 +50,7 @@ typedef struct
 namespace dns
 {
     std::string ToBinary(char* hex, size_t);
+    std::string byteToBinary(uint16_t byte);
 
     class DnsStruct
     {
@@ -75,6 +76,11 @@ namespace dns
         int fp;
     };
 
-    void AnswerGenerate(DNS_DATA data, char* request, size_t requestSizeOF, std::vector<DNSRECORD> conf);
+    // отнимать 1 от вывода, чтоб убрать точку с конца
+    std::string BuildPath(std::vector<std::string> path);
+    std::vector<std::string> FragmentPath(std::string path);
+
+    std::vector<char> GenerateAll(DNS_DATA& data, std::vector<DNSRECORD> conf);
+    std::vector<char> AnswerGenerate(DNS_QUESTION& qs, std::vector<DNSRECORD> conf, std::string Searchble, int* bdata);
 }
 
