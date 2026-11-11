@@ -185,7 +185,7 @@ namespace dns
     std::string ToBinary16Bit(uint16_t val)
     {
         uint8_t mlb = val & 0xFF;
-        uint8_t stb = val & 0xFF00;
+        uint8_t stb = (val >> 8) & 0xFF;
 
         std::string out;
 
@@ -360,8 +360,8 @@ namespace dns
                     answer.push_back(0);
                     size ++;
 
-                    answer[sv] = size & 0xFF00;
-                    answer[sv+1] = size & 0xFF;
+                    answer[sv]     = (size >> 8) & 0xFF;
+                    answer[sv + 1] = size & 0xFF;
                 }
 
                 

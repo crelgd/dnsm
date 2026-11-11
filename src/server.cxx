@@ -80,8 +80,6 @@ int DNSSrv::Runtime()
     std::vector<char> answerData;
     int answerCount = 0;
 
-    bool serverExist = false;
-
     for (int i = 0; i < ds.data.header.QDCOUNT; i++) {
         std::string search = dns::BuildPath(ds.data.request[i].QNAME);
 
