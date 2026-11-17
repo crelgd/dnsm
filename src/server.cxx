@@ -72,7 +72,8 @@ int DNSSrv::Runtime()
 {
     Listen();
 
-    std::string DNSRequest = dns::ToBinary(RequestBfr, sizeof(RequestBfr));    
+    std::string DNSRequest = dns::ToBinary(RequestBfr, sizeof(RequestBfr));
+
     dns::DnsStruct ds = dns::DnsStruct();
     ds.ReadData(DNSRequest);
 
@@ -103,14 +104,30 @@ int DNSSrv::Runtime()
                 ds.data.header.RCODE = 3;
         }
     }
+
+    std::vector<char> annotherDNSAnswer;
+
+    if (ds.data.header.RCODE == 3)
+    {
+        answer = requestS.RequestDNS(RequestBfr, listenVAL);
+
+        if (answer.empty())
+        {
+            printf("Annother dns err\n");
+            return 1;
+        }
+    }
+    else {
  
-    ds.data.header.ANCOUNT = answerCount;
+        ds.data.header.ANCOUNT = answerCount;
 
-    ds.data.header.RA = 0;
-    ds.data.header.QR = 1;
+        ds.data.header.RA = 0;
+        ds.data.header.QR = 1;
 
-    answer = dns::GenerateAll(ds.data, crecord);
-    answer.insert(answer.end(), answerData.begin(), answerData.end());
+        answer = dns::GenerateAll(ds.data, crecord);
+        answer.insert(answer.end(), answerData.begin(), answerData.end());
+    }
+    
 
     iResult = sendto(Socket, answer.data(), answer.size(), 0, (SOCKADDR*)&SenderAddr, SenderAddrSize);
     if (iResult == SOCKET_ERROR) {

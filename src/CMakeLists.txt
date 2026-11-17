@@ -3,6 +3,7 @@ set(_SOURCE
     server.cxx
     parse_dns.cxx
     FileRecord.cxx
+    server_request.cxx
 )
 
 set(_CLIENT

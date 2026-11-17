@@ -9,6 +9,20 @@
 
 #define CONFIG_FILE "config.ini"
 
+class RequestOUT
+{
+public:
+    std::vector<char> RequestDNS(char* request, size_t request_size);
+
+private:
+    int Configure();
+    int Close();
+    int Shutdown();
+
+private:
+    SOCKET Socket;
+};
+
 class DNSSrv
 {
 public:
@@ -34,4 +48,6 @@ private:
 
     fsdns::DNSRecord file;
     std::vector<DNSRECORD> crecord;
+
+    RequestOUT requestS;
 };
