@@ -319,17 +319,23 @@ namespace dns
         {
         case 1:
             {
-                std::vector<char> an = NewAnswer(qs, conf, RecordPointer);
-                answer.insert(answer.end(), an.begin(), an.end());
+                *bdata = conf[RecordPointer].Address.size();
 
-                uint16_t dataSize = conf[RecordPointer].Address.size();
-                Push16(answer, dataSize);
-                for (int i = 0; i < dataSize; i++)
+                for (int i = 0; i < *bdata; i++)
                 {
-                    answer.push_back(conf[RecordPointer].Address[i]);
+                    std::vector<char> an = NewAnswer(qs, conf, RecordPointer);
+                    answer.insert(answer.end(), an.begin(), an.end());
+
+                    uint16_t dataSize = conf[RecordPointer].Address[i].size();
+                    Push16(answer, dataSize);
+                    for (int j = 0; j < dataSize; j++)
+                    {
+                        answer.push_back(conf[RecordPointer].Address[i][j]);
+                    }
                 }
-                break;
             }
+
+            break;
 
         case 2:
             {
@@ -363,8 +369,6 @@ namespace dns
                     answer[sv]     = (size >> 8) & 0xFF;
                     answer[sv + 1] = size & 0xFF;
                 }
-
-                
             }
 
             break;

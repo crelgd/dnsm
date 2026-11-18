@@ -5,8 +5,10 @@
 
 typedef struct {
     std::string ZoneName;
-    std::vector<char> Address;
+    std::vector<std::vector<char>> Address;
     std::vector<std::string> NameServerRecords;
+
+    int TTL;
 } DNSRECORD;
 
 typedef enum {

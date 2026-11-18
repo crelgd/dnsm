@@ -23,6 +23,7 @@ DNSSrv::DNSSrv(unsigned short ListeningPort)
     }
 
     crecord = file.GetRecords();
+    cache_non = crecord.size();
 }
 
 DNSSrv::~DNSSrv()
@@ -81,6 +82,8 @@ int DNSSrv::Runtime()
     std::vector<char> answerData;
     int answerCount = 0;
 
+    int change_cache = 0;
+
     for (int i = 0; i < ds.data.header.QDCOUNT; i++) {
         std::string search = dns::BuildPath(ds.data.request[i].QNAME);
 
@@ -98,18 +101,41 @@ int DNSSrv::Runtime()
             else answerCount++;
         }
         else {
-            if (s == 0xff)
+            if (s == 0xff) {
                 ds.data.header.RCODE = 0;
-            else
+                change_cache = 1;
+            }
+            else {
                 ds.data.header.RCODE = 3;
+                change_cache = 0;
+            }
         }
     }
 
     std::vector<char> annotherDNSAnswer;
 
-    if (ds.data.header.RCODE == 3)
+    if (ds.data.header.RCODE == 3 || change_cache)
     {
         answer = requestS.RequestDNS(RequestBfr, listenVAL);
+
+        DNSRECORD drc = SaveRecordToCache(dns::ToBinary(answer.data(), answer.size()), answer, listenVAL);
+
+        if (change_cache)
+        {
+            for (int i = 0; i < crecord.size(); i++)
+            {
+                if (drc.ZoneName == crecord[i].ZoneName)
+                {
+                    if (!drc.Address.empty())
+                        crecord[i].Address = drc.Address;
+                    else if (!drc.NameServerRecords.empty())
+                        crecord[i].NameServerRecords = drc.NameServerRecords;
+                    
+                    break;
+                }    
+            }
+        } else 
+            crecord.push_back(drc);
 
         if (answer.empty())
         {
@@ -118,7 +144,6 @@ int DNSSrv::Runtime()
         }
     }
     else {
- 
         ds.data.header.ANCOUNT = answerCount;
 
         ds.data.header.RA = 0;
@@ -128,7 +153,6 @@ int DNSSrv::Runtime()
         answer.insert(answer.end(), answerData.begin(), answerData.end());
     }
     
-
     iResult = sendto(Socket, answer.data(), answer.size(), 0, (SOCKADDR*)&SenderAddr, SenderAddrSize);
     if (iResult == SOCKET_ERROR) {
         printf("send failed: %d\n", WSAGetLastError());
@@ -163,4 +187,143 @@ int DNSSrv::Runtime()
     return 0;
 }
 
+// мне лень крч красиво расписывать
+DNSRECORD DNSSrv::SaveRecordToCache(std::string dns_data, std::vector<char> dns_data_source, int request_counter)
+{   
+    if (dns_data.size() < request_counter)
+        return {};
+
+    DNSRECORD out = {};
+
+    dns::DnsStruct dnssc;
+    dnssc.ReadData(dns_data);
+
+    std::string search = dns::BuildPath(dnssc.data.request[0].QNAME);
+    out.ZoneName = search;
+
+    int jout = request_counter;
+
+    std::vector<std::vector<char>> iplist;
+    
+    std::vector<std::string> NSrec;
+
+    for (int i = 0; i < dnssc.data.header.ANCOUNT; i++)
+    {
+        while (jout < dns_data_source.size() - request_counter)
+        {
+            uint8_t dsize = dns_data_source[jout];
+            if (dsize == 0x00)
+                break;
+
+            if ((dsize & 0xc0) != 0)
+            {
+                jout++;
+                break;
+            }
+
+            jout += dsize + 1;
+        }
+
+        if (jout + 1 >= dns_data_source.size())
+            return {};
+
+        jout++;
+
+        uint8_t starb = dns_data_source[jout];
+        uint8_t mladb = dns_data_source[jout+1];
+        uint16_t TYPE = (static_cast<uint16_t>(starb) << 8) | mladb;
+
+        jout += 8;
+
+        switch (TYPE)
+        {
+        case 1:
+            {
+                starb = dns_data_source[jout];
+                mladb = dns_data_source[jout+1];
+
+                jout += 2;
+
+                uint16_t size = (static_cast<uint16_t>(starb) << 8) | mladb;
+
+                if (jout + size > dns_data_source.size())
+                    return {};
+
+                std::vector<char> ip;
+                for (int c = 0; c < size; c++)
+                {
+                    ip.push_back(dns_data_source[jout+c]);
+                }        
+                iplist.push_back(ip);
+
+                jout += size;
+
+                out.Address.push_back(ip);
+            }
+            break;
+
+        case 2:
+            {
+                starb = dns_data_source[jout];
+                mladb = dns_data_source[jout+1];
+
+                jout += 2;
+
+                uint16_t size = (static_cast<uint16_t>(starb) << 8) | mladb;
+                std::vector<std::string> convertbfr;
+
+                size_t end = jout + size;
+
+                while (jout < end)
+                {
+                    if (jout >= end)
+                        return {};
+
+                    uint16_t dmsize = dns_data_source[jout]; jout++;
+
+                    if ((dmsize & 0xc0) == 0)
+                    {
+                        std::string dmn;
+                        for (int i = 0; i < dmsize; i++)
+                        {
+                            dmn += dns_data_source[jout++];
+                        }
+                        
+                        convertbfr.push_back(dmn);
+                    }
+                    else if ((dmsize & 0xC0) == 0xC0)
+                    {
+                        uint16_t pointer =
+                            ((dmsize & 0x3F) << 8) |
+                            static_cast<uint8_t>(dns_data_source[jout]);
+                        jout ++;
+
+                        while (dns_data_source[pointer] != 0x00)
+                        {
+                            std::string dmn;
+
+                            uint8_t dd = dns_data_source[pointer];
+                            pointer++;
+
+                            for (int i = 0; i < dd; i++)
+                            {
+                                dmn += dns_data_source[pointer++];
+                            }
+                            convertbfr.push_back(dmn);
+                        }
+                    }
+                    else
+                        return {};
+                }
+
+                std::string converted = dns::BuildPath(convertbfr);
+
+                out.NameServerRecords.push_back(converted);
+            }
+            break;
+        }
+    }
+
+    return out;
+}
 

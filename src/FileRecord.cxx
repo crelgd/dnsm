@@ -53,7 +53,7 @@ namespace fsdns {
 
         std::vector<char> s = TransformIP(adr);
 
-        dnsrec.Address = TransformIP(adr);
+        dnsrec.Address.push_back(TransformIP(adr));
 
         return 1;   
     }

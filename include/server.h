@@ -33,6 +33,7 @@ public:
     int Runtime();
 private:
     int Listen();
+    DNSRECORD SaveRecordToCache(std::string dns_data, std::vector<char> dns_data_source, int request_counter);
 
 private:
     WSADATA wsadata;
@@ -50,4 +51,6 @@ private:
     std::vector<DNSRECORD> crecord;
 
     RequestOUT requestS;
+
+    int cache_non;
 };

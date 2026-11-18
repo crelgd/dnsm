@@ -18,7 +18,26 @@ std::vector<char> RequestOUT::RequestDNS(char* request, size_t request_size)
         return {};
     }
 
+
+    DWORD timeout = 3000;
+
+    setsockopt(
+        Socket,
+        SOL_SOCKET,
+        SO_RCVTIMEO,
+        (const char*)&timeout,
+        sizeof(timeout)
+    );
+
     iResult = recv(Socket, response.data(), response.size(), 0);
+
+    if (iResult == SOCKET_ERROR) {
+        printf("recv failed: %d\n", WSAGetLastError());
+        Close();
+        return {};
+    }
+
+    response.resize(iResult);
 
     if (Close() == 1)
         return {};
